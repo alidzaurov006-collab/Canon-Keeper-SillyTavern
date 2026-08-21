@@ -1,0 +1,14 @@
+{
+  "display_name": "Canon Keeper",
+  "loading_order": 100,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "Canon Keeper",
+  "version": "0.1.0",
+  "homePage": "https://github.com/",
+  "hooks": {
+    "activate": "init"
+  }
+}
