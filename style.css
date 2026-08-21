@@ -1,1 +1,22 @@
+#canon-keeper-button {
+    position: fixed;
+    right: 20px;
+    bottom: 100px;
+    z-index: 99999;
 
+    padding: 10px 16px;
+    border-radius: 10px;
+
+    background: #222;
+    color: white;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#canon-keeper-button:hover {
+    opacity: 0.85;
+}
