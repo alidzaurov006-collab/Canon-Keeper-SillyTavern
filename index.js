@@ -1,172 +1,132 @@
 jQuery(function () {
 
-    // =========================
-    // Canon Keeper — кнопка меню
-    // =========================
+    const STORAGE_KEY = 'canonKeeperRules';
 
-    const buttonHtml = `
-        <div id="canon-keeper-button"
-             class="list-group-item flex-container flexGap5">
-            <div class="fa-solid fa-shield extensionsMenuExtensionButton"></div>
-            Canon Keeper
-        </div>
-    `;
-
-    if ($('#canon-keeper-button').length === 0) {
-        $('#extensionsMenu').prepend(buttonHtml);
+    function loadRules() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch (e) {
+            console.error('[Canon Keeper] Ошибка загрузки правил:', e);
+            return [];
+        }
     }
 
-
-    // =========================
-    // Безопасный вывод текста
-    // =========================
-
-    function escapeHtml(text) {
-        return $('<div>').text(text).html();
+    function saveRules(rules) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(rules));
     }
-
-
-    // =========================
-    // Отображение правил
-    // =========================
 
     function renderRules() {
+        const rules = loadRules();
+        const container = $('#canon-keeper-rules');
 
-        const container = $('#canon-rules');
-
-        if (!container.length) {
-            return;
-        }
+        if (!container.length) return;
 
         container.empty();
 
-        const savedRules = JSON.parse(
-            localStorage.getItem('canonKeeperRules') || '[]'
-        );
+        rules.forEach(function (rule, index) {
 
-        savedRules.forEach(function (rule, index) {
+            const card = $(`
+                <div class="canon-rule-card">
+                    <div class="canon-rule-text"></div>
 
-            container.append(`
-                <div class="canon-rule"
-                     data-rule-index="${index}"
-                     style="
-                        background:#222;
-                        border:1px solid #444;
-                        border-radius:10px;
-                        padding:15px;
-                        margin-top:10px;
-                        font-size:18px;
-                     ">
-
-                    <div style="
-                        margin-bottom:15px;
-                        line-height:1.4;
-                    ">
-                        ${escapeHtml(rule)}
-                    </div>
-
-                    <div style="
-                        display:flex;
-                        gap:10px;
-                    ">
-
-                        <button
-                            type="button"
-                            class="canon-edit-rule"
-                            data-index="${index}"
-                            style="
-                                flex:1;
-                                padding:10px;
-                                background:#333;
-                                color:#eee;
-                                border:1px solid #555;
-                                border-radius:8px;
-                                font-size:16px;
-                            ">
+                    <div class="canon-rule-actions">
+                        <button type="button"
+                                class="canon-edit-rule"
+                                data-index="${index}">
                             ✏️ Изменить
                         </button>
 
-                        <button
-                            type="button"
-                            class="canon-delete-rule"
-                            data-index="${index}"
-                            style="
-                                flex:1;
-                                padding:10px;
-                                background:#333;
-                                color:#eee;
-                                border:1px solid #555;
-                                border-radius:8px;
-                                font-size:16px;
-                            ">
+                        <button type="button"
+                                class="canon-delete-rule"
+                                data-index="${index}">
                             🗑️ Удалить
+                        </button>
+                    </div>
+                </div>
+            `);
+
+            card.find('.canon-rule-text').text(rule);
+            container.append(card);
+        });
+    }
+
+    function getCanonText() {
+        const rules = loadRules();
+
+        if (!rules.length) {
+            return '';
+        }
+
+        return rules
+            .map(function (rule, index) {
+                return (index + 1) + '. ' + rule;
+            })
+            .join('\n');
+    }
+
+    function openCanonKeeper() {
+
+        if ($('#canon-keeper-modal').length) {
+            $('#canon-keeper-modal').show();
+            renderRules();
+            return;
+        }
+
+        const modalHtml = `
+            <div id="canon-keeper-modal"
+                 style="
+                    position: fixed;
+                    inset: 0;
+                    z-index: 999999;
+                    background: rgba(0,0,0,0.75);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                 ">
+
+                <div style="
+                    width: min(700px, 100%);
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    background: #171717;
+                    color: #eeeeee;
+                    border-radius: 18px;
+                    padding: 28px;
+                    box-sizing: border-box;
+                ">
+
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 10px;
+                    ">
+
+                        <div style="
+                            font-size: 30px;
+                            font-weight: bold;
+                        ">
+                            🛡️ Canon Keeper
+                        </div>
+
+                        <button type="button"
+                                id="canon-keeper-close"
+                                style="
+                                    font-size: 25px;
+                                    border: none;
+                                    background: transparent;
+                                    color: #ffffff;
+                                ">
+                            ✕
                         </button>
 
                     </div>
 
-                </div>
-            `);
-
-        });
-    }
-
-
-    // =========================
-    // Открытие Canon Keeper
-    // =========================
-
-    $(document).off(
-        'click.canonKeeperOpen',
-        '#canon-keeper-button'
-    );
-
-    $(document).on(
-        'click.canonKeeperOpen',
-        '#canon-keeper-button',
-        function () {
-
-            const modalHtml = `
-                <div id="canon-keeper-modal"
-                     style="
-                        position:fixed;
-                        left:50%;
-                        top:50%;
-                        transform:translate(-50%,-50%);
-                        width:90%;
-                        max-width:760px;
-                        max-height:90vh;
-                        overflow-y:auto;
-                        background:#171717;
-                        color:#eee;
-                        padding:32px;
-                        border-radius:20px;
-                        z-index:99999;
-                        box-shadow:0 10px 40px rgba(0,0,0,.7);
-                     ">
-
-                    <button
-                        id="canon-keeper-close"
-                        type="button"
-                        style="
-                            position:absolute;
-                            right:15px;
-                            top:15px;
-                            font-size:24px;
-                            background:none;
-                            border:0;
-                            color:#fff;
-                        ">
-                        ×
-                    </button>
-
-                    <h1 style="text-align:center;">
-                        🛡️ Canon Keeper
-                    </h1>
-
                     <div style="
-                        text-align:center;
-                        font-size:22px;
-                        margin-bottom:30px;
+                        text-align: center;
+                        font-size: 20px;
+                        margin-bottom: 25px;
                     ">
                         Хранитель канона
                     </div>
@@ -178,247 +138,183 @@ jQuery(function () {
                     </h2>
 
                     <textarea
-                        id="canon-rule-input"
+                        id="canon-keeper-input"
                         placeholder="Напиши правило канона..."
                         style="
-                            width:100%;
-                            min-height:180px;
-                            box-sizing:border-box;
-                            background:#0d0d0d;
-                            color:#eee;
-                            border:1px solid #555;
-                            border-radius:10px;
-                            padding:15px;
-                            font-size:18px;
-                            resize:vertical;
-                        "></textarea>
+                            width: 100%;
+                            min-height: 150px;
+                            box-sizing: border-box;
+                            background: #0d0d0d;
+                            color: #eeeeee;
+                            border: 2px solid #555;
+                            border-radius: 12px;
+                            padding: 15px;
+                            font-size: 18px;
+                            resize: vertical;
+                        "
+                    ></textarea>
 
-                    <button
-                        id="canon-add-rule"
-                        type="button"
-                        style="
-                            width:100%;
-                            margin-top:20px;
-                            padding:14px;
-                            background:#222;
-                            color:#eee;
-                            border:1px solid #555;
-                            border-radius:10px;
-                            font-size:20px;
-                        ">
+                    <button type="button"
+                            id="canon-keeper-add"
+                            style="
+                                width: 100%;
+                                margin-top: 12px;
+                                padding: 16px;
+                                font-size: 20px;
+                                border-radius: 12px;
+                                border: 2px solid #555;
+                                background: #242424;
+                                color: #eeeeee;
+                            ">
                         ➕ Добавить правило
                     </button>
 
-                    <div
-                        id="canon-rules"
-                        style="margin-top:25px;">
+                    <div id="canon-keeper-rules"
+                         style="margin-top: 20px;">
                     </div>
 
+                    <button type="button"
+                            id="canon-keeper-copy"
+                            style="
+                                width: 100%;
+                                margin-top: 20px;
+                                padding: 16px;
+                                font-size: 20px;
+                                border-radius: 12px;
+                                border: 2px solid #555;
+                                background: #242424;
+                                color: #eeeeee;
+                            ">
+                        📋 Скопировать весь канон
+                    </button>
+
                 </div>
-            `;
+            </div>
+        `;
 
-            $('#canon-keeper-modal').remove();
+        $('body').append(modalHtml);
 
-            $('body').append(modalHtml);
+        renderRules();
 
-            renderRules();
-        }
-    );
+        $('#canon-keeper-close').on('click', function () {
+            $('#canon-keeper-modal').hide();
+        });
 
+        $('#canon-keeper-add').on('click', function () {
 
-    // =========================
-    // Закрытие окна
-    // =========================
+            const input = $('#canon-keeper-input');
+            const text = input.val().trim();
 
-    $(document).off(
-        'click.canonKeeperClose',
-        '#canon-keeper-close'
-    );
-
-    $(document).on(
-        'click.canonKeeperClose',
-        '#canon-keeper-close',
-        function () {
-
-            $('#canon-keeper-modal').remove();
-
-        }
-    );
-
-
-    // =========================
-    // Добавление правила
-    // =========================
-
-    $(document).off(
-        'click.canonKeeperAdd',
-        '#canon-add-rule'
-    );
-
-    $(document).on(
-        'click.canonKeeperAdd',
-        '#canon-add-rule',
-        function (event) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            const input = $('#canon-rule-input');
-            const rule = input.val().trim();
-
-            if (!rule) {
-
-                alert('Сначала напиши правило.');
-
+            if (!text) {
                 return;
             }
 
-            const savedRules = JSON.parse(
-                localStorage.getItem('canonKeeperRules') || '[]'
-            );
+            const rules = loadRules();
 
-            savedRules.push(rule);
+            rules.push(text);
 
-            localStorage.setItem(
-                'canonKeeperRules',
-                JSON.stringify(savedRules)
-            );
+            saveRules(rules);
 
             input.val('');
 
             renderRules();
+        });
 
-            console.log(
-                '[Canon Keeper] rule added:',
-                rule
-            );
-        }
-    );
+        $('#canon-keeper-copy').on('click', async function () {
 
+            const canon = getCanonText();
 
-    // =========================
-    // Изменение правила
-    // =========================
-
-    $(document).off(
-        'click.canonKeeperEdit',
-        '.canon-edit-rule'
-    );
-
-    $(document).on(
-        'click.canonKeeperEdit',
-        '.canon-edit-rule',
-        function (event) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            const index = Number(
-                $(this).data('index')
-            );
-
-            const savedRules = JSON.parse(
-                localStorage.getItem('canonKeeperRules') || '[]'
-            );
-
-            if (
-                index < 0 ||
-                index >= savedRules.length
-            ) {
+            if (!canon) {
+                alert('Канон пока пуст.');
                 return;
             }
 
-            const newRule = prompt(
-                'Изменить правило:',
-                savedRules[index]
-            );
+            try {
+                await navigator.clipboard.writeText(canon);
+                alert('Канон скопирован!');
+            } catch (e) {
+                console.error('[Canon Keeper] Ошибка копирования:', e);
+                alert('Не удалось скопировать канон.');
+            }
+        });
 
-            if (newRule === null) {
+        $(document).on('click', '.canon-delete-rule', function () {
+
+            const index = Number($(this).data('index'));
+
+            const rules = loadRules();
+
+            if (index >= 0 && index < rules.length) {
+                rules.splice(index, 1);
+                saveRules(rules);
+                renderRules();
+            }
+        });
+
+        $(document).on('click', '.canon-edit-rule', function () {
+
+            const index = Number($(this).data('index'));
+
+            const rules = loadRules();
+
+            if (index < 0 || index >= rules.length) {
                 return;
             }
 
-            const cleanedRule = newRule.trim();
+            const oldText = rules[index];
 
-            if (!cleanedRule) {
+            const newText = prompt(
+                'Изменить правило канона:',
+                oldText
+            );
 
-                alert('Правило не может быть пустым.');
-
+            if (newText === null) {
                 return;
             }
 
-            savedRules[index] = cleanedRule;
+            const cleanText = newText.trim();
 
-            localStorage.setItem(
-                'canonKeeperRules',
-                JSON.stringify(savedRules)
-            );
+            if (!cleanText) {
+                return;
+            }
+
+            rules[index] = cleanText;
+
+            saveRules(rules);
 
             renderRules();
+        });
+    }
 
-            console.log(
-                '[Canon Keeper] rule edited:',
-                cleanedRule
-            );
-        }
-    );
+    /*
+     * Кнопка Canon Keeper
+     */
 
+    const buttonHtml = `
+        <div id="canon-keeper-button"
+             class="list-group-item flex-container flexGap5">
 
-    // =========================
-    // Удаление правила
-    // =========================
+            <div class="fa-solid fa-book extensionsMenuExtensionButton"></div>
 
-    $(document).off(
-        'click.canonKeeperDelete',
-        '.canon-delete-rule'
-    );
+            Canon Keeper
+        </div>
+    `;
 
-    $(document).on(
-        'click.canonKeeperDelete',
-        '.canon-delete-rule',
-        function (event) {
+    if (!$('#canon-keeper-button').length) {
+        $('#extensionsMenu').prepend(buttonHtml);
+    }
 
-            event.preventDefault();
-            event.stopPropagation();
+    /*
+     * Открытие Canon Keeper
+     */
 
-            const index = Number(
-                $(this).data('index')
-            );
+    $(document)
+        .off('click.canonKeeper', '#canon-keeper-button')
+        .on('click.canonKeeper', '#canon-keeper-button', function () {
 
-            const savedRules = JSON.parse(
-                localStorage.getItem('canonKeeperRules') || '[]'
-            );
+            openCanonKeeper();
 
-            if (
-                index < 0 ||
-                index >= savedRules.length
-            ) {
-                return;
-            }
-
-            const confirmed = confirm(
-                'Удалить это правило?'
-            );
-
-            if (!confirmed) {
-                return;
-            }
-
-            savedRules.splice(index, 1);
-
-            localStorage.setItem(
-                'canonKeeperRules',
-                JSON.stringify(savedRules)
-            );
-
-            renderRules();
-
-            console.log(
-                '[Canon Keeper] rule deleted:',
-                index
-            );
-        }
-    );
-
+        });
 
     console.log('[Canon Keeper] loaded');
 
