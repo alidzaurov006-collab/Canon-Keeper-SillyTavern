@@ -842,4 +842,414 @@ jQuery(function () {
         '[Canon Keeper] готов'
     );
 
-});
+});     // =========================================================
+    // ПЛАВАЮЩИЙ ВИДЖЕТ CANON KEEPER
+    // =========================================================
+
+    if ($('#canon-keeper-floating-widget').length === 0) {
+
+        // -----------------------------------------------------
+        // CSS виджета
+        // -----------------------------------------------------
+
+        if ($('#canon-keeper-floating-style').length === 0) {
+
+            $('head').append(`
+                <style id="canon-keeper-floating-style">
+
+                    #canon-keeper-floating-widget {
+
+                        position: fixed;
+
+                        width: 58px;
+                        height: 58px;
+
+                        right: 18px;
+                        bottom: 90px;
+
+                        z-index: 999999;
+
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        border-radius: 50%;
+
+                        background: #242424;
+
+                        border: 2px solid #555;
+
+                        box-shadow:
+                            0 5px 18px rgba(0,0,0,0.55);
+
+                        color: #eeeeee;
+
+                        font-size: 28px;
+
+                        cursor: grab;
+
+                        user-select: none;
+                        -webkit-user-select: none;
+
+                        touch-action: none;
+
+                        transition:
+                            transform 0.12s ease,
+                            box-shadow 0.12s ease;
+                    }
+
+
+                    #canon-keeper-floating-widget:active {
+
+                        cursor: grabbing;
+
+                    }
+
+
+                    #canon-keeper-floating-widget.canon-dragging {
+
+                        cursor: grabbing;
+
+                        transform: scale(1.08);
+
+                        box-shadow:
+                            0 8px 25px rgba(0,0,0,0.7);
+                    }
+
+                </style>
+            `);
+        }
+
+
+        // -----------------------------------------------------
+        // Создаём виджет
+        // -----------------------------------------------------
+
+        const floatingWidget = $(`
+            <div
+                id="canon-keeper-floating-widget"
+                title="Canon Keeper">
+
+                📖
+
+            </div>
+        `);
+
+
+        $('body').append(floatingWidget);
+
+
+        // -----------------------------------------------------
+        // Восстанавливаем положение
+        // -----------------------------------------------------
+
+        try {
+
+            const savedPosition =
+                JSON.parse(
+                    localStorage.getItem(
+                        'canonKeeperWidgetPosition'
+                    ) || 'null'
+                );
+
+
+            if (
+                savedPosition &&
+                typeof savedPosition.left === 'number' &&
+                typeof savedPosition.top === 'number'
+            ) {
+
+                floatingWidget.css({
+                    left: savedPosition.left + 'px',
+                    top: savedPosition.top + 'px',
+                    right: 'auto',
+                    bottom: 'auto'
+                });
+
+            }
+
+        } catch (error) {
+
+            console.log(
+                '[Canon Keeper] Не удалось восстановить положение виджета'
+            );
+
+        }
+
+
+        // -----------------------------------------------------
+        // Перемещение / тап
+        // -----------------------------------------------------
+
+        let pointerStartX = 0;
+        let pointerStartY = 0;
+
+        let widgetStartLeft = 0;
+        let widgetStartTop = 0;
+
+        let isDragging = false;
+
+        let longPressTimer = null;
+
+        let pointerDownTime = 0;
+
+
+        floatingWidget.on(
+            'pointerdown',
+            function (event) {
+
+                event.preventDefault();
+
+
+                const rect =
+                    this.getBoundingClientRect();
+
+
+                pointerStartX =
+                    event.clientX;
+
+                pointerStartY =
+                    event.clientY;
+
+
+                widgetStartLeft =
+                    rect.left;
+
+                widgetStartTop =
+                    rect.top;
+
+
+                pointerDownTime =
+                    Date.now();
+
+
+                isDragging = false;
+
+
+                /*
+                 * Захватываем pointer,
+                 * чтобы движение не потерялось.
+                 */
+                try {
+
+                    this.setPointerCapture(
+                        event.pointerId
+                    );
+
+                } catch (e) {}
+
+
+                /*
+                 * Если пользователь держит палец,
+                 * включаем режим перемещения.
+                 */
+                longPressTimer =
+                    setTimeout(function () {
+
+                        isDragging = true;
+
+                        floatingWidget.addClass(
+                            'canon-dragging'
+                        );
+
+                    }, 400);
+
+            }
+        );
+
+
+        floatingWidget.on(
+            'pointermove',
+            function (event) {
+
+                if (
+                    pointerStartX === 0 &&
+                    pointerStartY === 0
+                ) {
+                    return;
+                }
+
+
+                const deltaX =
+                    event.clientX -
+                    pointerStartX;
+
+
+                const deltaY =
+                    event.clientY -
+                    pointerStartY;
+
+
+                /*
+                 * Если палец заметно сдвинулся,
+                 * считаем это перемещением,
+                 * даже если 400 мс ещё не прошли.
+                 */
+                if (
+                    Math.abs(deltaX) > 8 ||
+                    Math.abs(deltaY) > 8
+                ) {
+
+                    isDragging = true;
+
+                    clearTimeout(
+                        longPressTimer
+                    );
+
+                    floatingWidget.addClass(
+                        'canon-dragging'
+                    );
+                }
+
+
+                if (!isDragging) {
+                    return;
+                }
+
+
+                const widgetWidth =
+                    floatingWidget.outerWidth();
+
+
+                const widgetHeight =
+                    floatingWidget.outerHeight();
+
+
+                let newLeft =
+                    widgetStartLeft +
+                    deltaX;
+
+
+                let newTop =
+                    widgetStartTop +
+                    deltaY;
+
+
+                /*
+                 * Не даём виджету уйти
+                 * за края экрана.
+                 */
+                const maxLeft =
+                    window.innerWidth -
+                    widgetWidth;
+
+
+                const maxTop =
+                    window.innerHeight -
+                    widgetHeight;
+
+
+                newLeft =
+                    Math.max(
+                        0,
+                        Math.min(
+                            newLeft,
+                            maxLeft
+                        )
+                    );
+
+
+                newTop =
+                    Math.max(
+                        0,
+                        Math.min(
+                            newTop,
+                            maxTop
+                        )
+                    );
+
+
+                floatingWidget.css({
+
+                    left: newLeft + 'px',
+                    top: newTop + 'px',
+
+                    right: 'auto',
+                    bottom: 'auto'
+
+                });
+
+            }
+        );
+
+
+        floatingWidget.on(
+            'pointerup pointercancel',
+            function (event) {
+
+                clearTimeout(
+                    longPressTimer
+                );
+
+
+                const wasDragging =
+                    isDragging;
+
+
+                const pressDuration =
+                    Date.now() -
+                    pointerDownTime;
+
+
+                /*
+                 * Если перемещали — сохраняем позицию.
+                 */
+                if (wasDragging) {
+
+                    const rect =
+                        this.getBoundingClientRect();
+
+
+                    try {
+
+                        localStorage.setItem(
+                            'canonKeeperWidgetPosition',
+                            JSON.stringify({
+                                left: rect.left,
+                                top: rect.top
+                            })
+                        );
+
+                    } catch (error) {
+
+                        console.log(
+                            '[Canon Keeper] Не удалось сохранить положение виджета'
+                        );
+
+                    }
+
+
+                    floatingWidget.removeClass(
+                        'canon-dragging'
+                    );
+
+                }
+
+
+                /*
+                 * Если это был обычный короткий тап,
+                 * открываем Canon Keeper.
+                 */
+                if (
+                    !wasDragging &&
+                    pressDuration < 400
+                ) {
+
+                    openCanonKeeper();
+
+                }
+
+
+                pointerStartX = 0;
+                pointerStartY = 0;
+
+                isDragging = false;
+
+            }
+        );
+
+
+        console.log(
+            '[Canon Keeper] плавающий виджет создан'
+        );
+            }
