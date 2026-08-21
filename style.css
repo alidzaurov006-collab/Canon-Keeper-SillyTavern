@@ -1,22 +1,417 @@
-#canon-keeper-button {
+/* =========================================================
+   CANON KEEPER
+   Основная панель
+   ========================================================= */
+
+#canon-keeper-panel {
     position: fixed;
-    right: 20px;
-    bottom: 100px;
+    inset: 0;
     z-index: 99999;
 
-    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.72);
+}
+
+/* Окно */
+
+#canon-keeper-panel .ck-window {
+    width: min(1100px, 100%);
+    height: min(750px, 92vh);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: #17181c;
+    color: #eeeeee;
+
+    border: 1px solid #3a3d44;
+    border-radius: 16px;
+
+    box-shadow:
+        0 20px 70px rgba(0, 0, 0, 0.65),
+        0 0 30px rgba(120, 140, 180, 0.08);
+}
+
+/* =========================================================
+   Верхняя часть
+   ========================================================= */
+
+#canon-keeper-panel .ck-header {
+    min-height: 78px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px 22px;
+
+    background: #202228;
+    border-bottom: 1px solid #383b43;
+}
+
+#canon-keeper-panel .ck-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+#canon-keeper-panel .ck-title small {
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 12px;
+    font-weight: 400;
+
+    color: #999da8;
+}
+
+#canon-keeper-panel #ck-close {
+    width: 42px;
+    height: 42px;
+
+    border: 0;
     border-radius: 10px;
 
-    background: #222;
-    color: white;
+    background: #30333a;
+    color: #eeeeee;
 
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 28px;
+    line-height: 1;
 
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-#canon-keeper-button:hover {
-    opacity: 0.85;
+#canon-keeper-panel #ck-close:hover {
+    background: #454851;
 }
+
+/* =========================================================
+   Статус
+   ========================================================= */
+
+#canon-keeper-panel .ck-status {
+    display: flex;
+    gap: 40px;
+
+    padding: 14px 22px;
+
+    background: #1c1e23;
+    border-bottom: 1px solid #30333a;
+}
+
+#canon-keeper-panel .ck-status span {
+    display: block;
+
+    margin-bottom: 4px;
+
+    font-size: 10px;
+    letter-spacing: 1px;
+
+    color: #858994;
+}
+
+#canon-keeper-panel .ck-status b {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#canon-keeper-panel .ck-good {
+    color: #69d391;
+}
+
+/* =========================================================
+   Основная область
+   ========================================================= */
+
+#canon-keeper-panel .ck-body {
+    flex: 1;
+
+    min-height: 0;
+
+    display: flex;
+}
+
+/* =========================================================
+   Боковое меню
+   ========================================================= */
+
+#canon-keeper-panel .ck-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+
+    padding: 14px;
+
+    background: #1c1e23;
+    border-right: 1px solid #30333a;
+
+    overflow-y: auto;
+}
+
+#canon-keeper-panel .ck-sidebar button {
+    width: 100%;
+
+    display: block;
+
+    margin-bottom: 5px;
+    padding: 12px 13px;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: transparent;
+    color: #b9bdc7;
+
+    text-align: left;
+    font-size: 14px;
+
+    cursor: pointer;
+}
+
+#canon-keeper-panel .ck-sidebar button:hover {
+    background: #292c33;
+    color: #ffffff;
+}
+
+#canon-keeper-panel .ck-sidebar button.active {
+    background: #30343d;
+    color: #ffffff;
+
+    box-shadow: inset 3px 0 0 #8da8ff;
+}
+
+/* =========================================================
+   Контент
+   ========================================================= */
+
+#canon-keeper-panel .ck-content {
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 26px;
+
+    overflow-y: auto;
+}
+
+/* Приветственный блок */
+
+#canon-keeper-panel .ck-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+
+    padding: 24px;
+
+    margin-bottom: 22px;
+
+    background: #20232a;
+
+    border: 1px solid #353943;
+    border-radius: 14px;
+}
+
+#canon-keeper-panel .ck-hero-icon {
+    width: 58px;
+    height: 58px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background: #303541;
+
+    font-size: 30px;
+}
+
+#canon-keeper-panel .ck-hero h1 {
+    margin: 0 0 9px;
+
+    font-size: 22px;
+    line-height: 1.25;
+}
+
+#canon-keeper-panel .ck-hero p {
+    margin: 0;
+
+    max-width: 700px;
+
+    color: #aeb2bd;
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   Карточки
+   ========================================================= */
+
+#canon-keeper-panel .ck-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+#canon-keeper-panel .ck-card {
+    padding: 20px;
+
+    min-height: 130px;
+
+    background: #20232a;
+
+    border: 1px solid #353943;
+    border-radius: 14px;
+}
+
+#canon-keeper-panel .ck-card h3 {
+    margin: 0 0 16px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #c5c9d2;
+}
+
+#canon-keeper-panel .ck-card strong {
+    display: block;
+
+    margin-bottom: 3px;
+
+    font-size: 28px;
+    line-height: 1;
+
+    color: #ffffff;
+}
+
+#canon-keeper-panel .ck-card span {
+    font-size: 12px;
+
+    color: #858994;
+}
+
+/* =========================================================
+   Телефон
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    #canon-keeper-panel {
+        align-items: stretch;
+
+        padding: 0;
+    }
+
+    #canon-keeper-panel .ck-window {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+
+        border: 0;
+        border-radius: 0;
+    }
+
+    #canon-keeper-panel .ck-header {
+        min-height: 68px;
+
+        padding: 12px 15px;
+    }
+
+    #canon-keeper-panel .ck-title {
+        font-size: 17px;
+    }
+
+    #canon-keeper-panel .ck-status {
+        gap: 20px;
+
+        padding: 11px 15px;
+
+        overflow-x: auto;
+    }
+
+    #canon-keeper-panel .ck-body {
+        flex-direction: column;
+    }
+
+    /*
+       На телефоне боковое меню превращается
+       в горизонтальную полосу.
+    */
+
+    #canon-keeper-panel .ck-sidebar {
+        width: 100%;
+
+        display: flex;
+        gap: 6px;
+
+        padding: 8px;
+
+        border-right: 0;
+        border-bottom: 1px solid #30333a;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    #canon-keeper-panel .ck-sidebar button {
+        width: auto;
+        flex-shrink: 0;
+
+        margin: 0;
+
+        padding: 9px 11px;
+
+        white-space: nowrap;
+
+        font-size: 12px;
+    }
+
+    #canon-keeper-panel .ck-sidebar button.active {
+        box-shadow: inset 0 -3px 0 #8da8ff;
+    }
+
+    #canon-keeper-panel .ck-content {
+        padding: 15px;
+    }
+
+    #canon-keeper-panel .ck-hero {
+        padding: 17px;
+
+        gap: 12px;
+    }
+
+    #canon-keeper-panel .ck-hero-icon {
+        width: 46px;
+        height: 46px;
+
+        font-size: 23px;
+    }
+
+    #canon-keeper-panel .ck-hero h1 {
+        font-size: 18px;
+    }
+
+    #canon-keeper-panel .ck-hero p {
+        font-size: 13px;
+    }
+
+    #canon-keeper-panel .ck-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #canon-keeper-panel .ck-card {
+        min-height: 100px;
+    }
+    }
