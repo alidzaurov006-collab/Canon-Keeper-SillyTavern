@@ -1,13 +1,18 @@
 jQuery(function () {
 
-    const STORAGE_KEY = 'canonKeeperRules';
-    const ENABLED_KEY = 'canonKeeperEnabled';
+    /* =====================================================
+       CANON KEEPER
+       ===================================================== */
+
+    const STORAGE_KEY = 'canon_keeper_rules';
+
+    /* ---------- Данные ---------- */
 
     function loadRules() {
         try {
             return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         } catch (e) {
-            console.error('[Canon Keeper] Load error:', e);
+            console.error('[Canon Keeper] Ошибка загрузки:', e);
             return [];
         }
     }
@@ -16,27 +21,216 @@ jQuery(function () {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(rules));
     }
 
-    function isEnabled() {
-        return localStorage.getItem(ENABLED_KEY) !== 'false';
+    /* ---------- Кнопка в меню Tavern ---------- */
+
+    if ($('#canon-keeper-button').length === 0) {
+
+        const buttonHtml = `
+            <div id="canon-keeper-button"
+                 class="list-group-item flex-container flexGap5">
+                <div class="fa-solid fa-book extensionsMenuExtensionButton"></div>
+                Canon Keeper
+            </div>
+        `;
+
+        $('#extensionsMenu').prepend(buttonHtml);
     }
 
-    function setEnabled(value) {
-        localStorage.setItem(ENABLED_KEY, value ? 'true' : 'false');
+    /* ---------- Стили окна ---------- */
+
+    function applyKeeperStyles() {
+
+        $('#canon-keeper-modal').css({
+            'position': 'fixed',
+            'top': '180px',
+            'left': '50%',
+            'transform': 'translateX(-50%)',
+            'width': 'calc(100vw - 32px)',
+            'max-width': '760px',
+            'max-height': 'calc(100vh - 205px)',
+            'overflow-y': 'auto',
+            'overflow-x': 'hidden',
+            'z-index': '2147483647',
+            'box-sizing': 'border-box'
+        });
+
+        $('#canon-keeper-modal, #canon-keeper-modal *').css(
+            'box-sizing',
+            'border-box'
+        );
     }
 
-    function getCanonText() {
-        const rules = loadRules();
+    /* ---------- Закрываем меню Tavern ---------- */
 
-        if (!rules.length) {
-            return '';
+    function closeTavernMenu() {
+
+        /*
+         * Важно:
+         * не удаляем меню и не ломаем его.
+         * Просто убираем его визуально перед открытием
+         * Canon Keeper.
+         */
+
+        const menu = $('#extensionsMenu');
+
+        if (menu.length) {
+            menu.removeClass('open');
+            menu.removeClass('show');
+            menu.attr('aria-hidden', 'true');
         }
 
-        return rules
-            .map(function (rule, index) {
-                return (index + 1) + '. ' + rule;
-            })
-            .join('\n');
+        /*
+         * Убираем возможные открытые dropdown/popover.
+         */
+        $('.dropdown-menu.show').not('#canon-keeper-modal').removeClass('show');
     }
+
+    /* ---------- Создание окна ---------- */
+
+    function createModal() {
+
+        if ($('#canon-keeper-modal').length) {
+            return;
+        }
+
+        const modalHtml = `
+            <div id="canon-keeper-modal">
+
+                <div style="
+                    background:#171717;
+                    color:#eeeeee;
+                    border:1px solid #333;
+                    border-radius:22px;
+                    padding:30px 28px;
+                    box-shadow:0 12px 50px rgba(0,0,0,.75);
+                    position:relative;
+                ">
+
+                    <button id="canon-keeper-close"
+                        style="
+                            position:absolute;
+                            right:12px;
+                            top:12px;
+                            width:42px;
+                            height:42px;
+                            border:0;
+                            border-radius:50%;
+                            background:#eeeeee;
+                            color:#111;
+                            font-size:26px;
+                            font-weight:bold;
+                            cursor:pointer;
+                            z-index:10;
+                        ">
+                        ×
+                    </button>
+
+                    <div style="
+                        text-align:center;
+                        font-size:38px;
+                        font-weight:bold;
+                        margin:5px 40px 12px;
+                    ">
+                        🛡️ Canon Keeper
+                    </div>
+
+                    <div style="
+                        text-align:center;
+                        font-size:25px;
+                        margin-bottom:25px;
+                        color:#dddddd;
+                    ">
+                        Хранитель канона
+                    </div>
+
+                    <hr style="
+                        border:0;
+                        border-top:1px solid #333;
+                        margin:0 0 25px;
+                    ">
+
+                    <div style="
+                        text-align:center;
+                        font-size:30px;
+                        font-weight:bold;
+                        margin-bottom:20px;
+                    ">
+                        📜 Канон
+                    </div>
+
+                    <textarea
+                        id="canon-keeper-input"
+                        placeholder="Напиши правило канона..."
+                        style="
+                            display:block;
+                            width:100%;
+                            min-height:170px;
+                            resize:vertical;
+                            padding:18px;
+                            border-radius:12px;
+                            border:2px solid #444;
+                            background:#0d0d0d;
+                            color:#eeeeee;
+                            font-size:22px;
+                            line-height:1.4;
+                            outline:none;
+                        "
+                    ></textarea>
+
+                    <button id="canon-keeper-add"
+                        style="
+                            display:block;
+                            width:100%;
+                            margin-top:18px;
+                            padding:16px;
+                            border-radius:12px;
+                            border:2px solid #444;
+                            background:#222;
+                            color:#eeeeee;
+                            font-size:24px;
+                            cursor:pointer;
+                        ">
+                        ➕ Добавить правило
+                    </button>
+
+                    <div id="canon-keeper-rules"
+                         style="margin-top:25px;">
+                    </div>
+
+                    <button id="canon-keeper-copy"
+                        style="
+                            display:block;
+                            width:100%;
+                            margin-top:25px;
+                            padding:17px;
+                            border-radius:12px;
+                            border:2px solid #444;
+                            background:#222;
+                            color:#eeeeee;
+                            font-size:24px;
+                            cursor:pointer;
+                        ">
+                        📋 Скопировать весь канон
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        /*
+         * Ключевой момент:
+         * окно добавляем непосредственно в BODY,
+         * а не внутрь extensionsMenu.
+         */
+        $('body').append(modalHtml);
+
+        applyKeeperStyles();
+
+        renderRules();
+    }
+
+    /* ---------- Отображение правил ---------- */
 
     function renderRules() {
 
@@ -50,356 +244,144 @@ jQuery(function () {
 
         container.empty();
 
-        if (!rules.length) {
-            container.append(`
-                <div style="
-                    padding: 18px;
-                    text-align: center;
-                    color: #999;
-                    font-size: 17px;
-                ">
-                    Канон пока пуст
-                </div>
-            `);
-
-            return;
-        }
-
         rules.forEach(function (rule, index) {
 
-            const card = $(`
-                <div class="canon-rule-card"
+            const ruleHtml = `
+                <div class="canon-rule"
+                     data-index="${index}"
                      style="
-                        margin-top: 15px;
-                        padding: 18px;
-                        background: #242424;
-                        border: 1px solid #444;
-                        border-radius: 12px;
+                        background:#242424;
+                        border:2px solid #444;
+                        border-radius:14px;
+                        padding:20px;
+                        margin-bottom:15px;
                      ">
 
-                    <div class="canon-rule-text"
-                         style="
-                            font-size: 18px;
-                            line-height: 1.4;
-                            white-space: pre-wrap;
-                         ">
+                    <div style="
+                        font-size:23px;
+                        line-height:1.45;
+                        white-space:pre-wrap;
+                        word-break:break-word;
+                    ">
+                        ${escapeHtml(rule)}
                     </div>
 
                     <div style="
-                        display: flex;
-                        gap: 10px;
-                        margin-top: 15px;
+                        display:flex;
+                        gap:12px;
+                        margin-top:18px;
                     ">
 
-                        <button type="button"
-                                class="canon-edit-rule"
-                                data-index="${index}"
-                                style="
-                                    flex: 1;
-                                    padding: 12px;
-                                    border-radius: 10px;
-                                    border: 1px solid #555;
-                                    background: #333;
-                                    color: #eee;
-                                    font-size: 16px;
-                                ">
+                        <button class="canon-edit"
+                            data-index="${index}"
+                            style="
+                                flex:1;
+                                padding:14px 8px;
+                                border-radius:10px;
+                                border:2px solid #555;
+                                background:#333;
+                                color:#eee;
+                                font-size:20px;
+                            ">
                             ✏️ Изменить
                         </button>
 
-                        <button type="button"
-                                class="canon-delete-rule"
-                                data-index="${index}"
-                                style="
-                                    flex: 1;
-                                    padding: 12px;
-                                    border-radius: 10px;
-                                    border: 1px solid #555;
-                                    background: #333;
-                                    color: #eee;
-                                    font-size: 16px;
-                                ">
+                        <button class="canon-delete"
+                            data-index="${index}"
+                            style="
+                                flex:1;
+                                padding:14px 8px;
+                                border-radius:10px;
+                                border:2px solid #555;
+                                background:#333;
+                                color:#eee;
+                                font-size:20px;
+                            ">
                             🗑️ Удалить
                         </button>
 
                     </div>
 
                 </div>
-            `);
+            `;
 
-            card.find('.canon-rule-text').text(rule);
-
-            container.append(card);
+            container.append(ruleHtml);
         });
     }
 
-    function updateEnabledUI() {
+    /* ---------- Защита от HTML ---------- */
 
-        const enabled = isEnabled();
+    function escapeHtml(text) {
 
-        const toggle = $('#canon-keeper-enabled');
-
-        if (!toggle.length) {
-            return;
-        }
-
-        toggle.prop('checked', enabled);
-
-        $('#canon-keeper-status').text(
-            enabled
-                ? 'Канон активен'
-                : 'Канон выключен'
-        );
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
-    function openCanonKeeper() {
+    /* ---------- Открытие ---------- */
 
-        if ($('#canon-keeper-modal').length) {
+    $(document).off('click.canonKeeper', '#canon-keeper-button');
+
+    $(document).on(
+        'click.canonKeeper',
+        '#canon-keeper-button',
+        function (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            closeTavernMenu();
+
+            createModal();
+
+            /*
+             * Переносим окно в самый конец BODY.
+             * Это дополнительно защищает его от меню Tavern.
+             */
+            const modal = document.getElementById('canon-keeper-modal');
+
+            if (modal && modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            applyKeeperStyles();
 
             $('#canon-keeper-modal').show();
-
-            renderRules();
-            updateEnabledUI();
-
-            return;
         }
+    );
 
-        const modalHtml = `
+    /* ---------- Закрытие ---------- */
 
-            <div id="canon-keeper-modal"
-                 style="
-                    position: fixed;
+    $(document).off('click.canonKeeperClose', '#canon-keeper-close');
 
-                    /*
-                     * ВАЖНО:
-                     * Окно начинается НИЖЕ верхней панели Tavern.
-                     */
-                    top: 185px;
-                    left: 10px;
-                    right: 10px;
-                    bottom: 80px;
+    $(document).on(
+        'click.canonKeeperClose',
+        '#canon-keeper-close',
+        function (event) {
 
-                    z-index: 99999;
+            event.preventDefault();
+            event.stopPropagation();
 
-                    background: rgba(0,0,0,0.72);
-
-                    display: flex;
-                    align-items: flex-start;
-                    justify-content: center;
-
-                    padding: 15px;
-
-                    box-sizing: border-box;
-
-                    overflow-y: auto;
-                 ">
-
-                <div style="
-                    width: min(700px, 100%);
-                    max-height: 100%;
-                    overflow-y: auto;
-
-                    background: #171717;
-                    color: #eeeeee;
-
-                    border-radius: 18px;
-
-                    padding: 25px;
-
-                    box-sizing: border-box;
-
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-                ">
-
-                    <div style="
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 8px;
-                    ">
-
-                        <div style="
-                            font-size: 28px;
-                            font-weight: bold;
-                        ">
-                            🛡️ Canon Keeper
-                        </div>
-
-                        <button type="button"
-                                id="canon-keeper-close"
-                                style="
-                                    width: 45px;
-                                    height: 45px;
-
-                                    border: none;
-                                    border-radius: 50%;
-
-                                    background: #333;
-                                    color: #fff;
-
-                                    font-size: 24px;
-                                ">
-                            ✕
-                        </button>
-
-                    </div>
-
-                    <div style="
-                        text-align: center;
-                        font-size: 19px;
-                        color: #ccc;
-                        margin-bottom: 20px;
-                    ">
-                        Хранитель канона
-                    </div>
-
-                    <hr>
-
-                    <h2 style="
-                        text-align: center;
-                        margin-top: 22px;
-                    ">
-                        📜 Канон
-                    </h2>
-
-                    <div style="
-                        display: flex;
-                        align-items: center;
-                        gap: 12px;
-
-                        padding: 14px;
-
-                        margin: 15px 0;
-
-                        background: #222;
-                        border-radius: 12px;
-                    ">
-
-                        <input
-                            type="checkbox"
-                            id="canon-keeper-enabled"
-                            style="
-                                width: 24px;
-                                height: 24px;
-                            "
-                        >
-
-                        <div>
-                            <div id="canon-keeper-status"
-                                 style="
-                                    font-size: 18px;
-                                    font-weight: bold;
-                                 ">
-                                Канон активен
-                            </div>
-
-                            <div style="
-                                font-size: 14px;
-                                color: #999;
-                                margin-top: 4px;
-                            ">
-                                Правила готовы для использования
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <textarea
-                        id="canon-keeper-input"
-                        placeholder="Напиши правило канона..."
-                        style="
-                            width: 100%;
-                            min-height: 140px;
-
-                            box-sizing: border-box;
-
-                            background: #0d0d0d;
-                            color: #eeeeee;
-
-                            border: 2px solid #555;
-                            border-radius: 12px;
-
-                            padding: 15px;
-
-                            font-size: 18px;
-
-                            resize: vertical;
-                        "
-                    ></textarea>
-
-                    <button type="button"
-                            id="canon-keeper-add"
-                            style="
-                                width: 100%;
-
-                                margin-top: 12px;
-
-                                padding: 15px;
-
-                                font-size: 20px;
-
-                                border-radius: 12px;
-                                border: 2px solid #555;
-
-                                background: #242424;
-                                color: #eeeeee;
-                            ">
-                        ➕ Добавить правило
-                    </button>
-
-                    <div id="canon-keeper-rules"
-                         style="margin-top: 15px;">
-                    </div>
-
-                    <button type="button"
-                            id="canon-keeper-copy"
-                            style="
-                                width: 100%;
-
-                                margin-top: 20px;
-
-                                padding: 15px;
-
-                                font-size: 19px;
-
-                                border-radius: 12px;
-                                border: 2px solid #555;
-
-                                background: #242424;
-                                color: #eeeeee;
-                            ">
-                        📋 Скопировать весь канон
-                    </button>
-
-                </div>
-
-            </div>
-        `;
-
-        $('body').append(modalHtml);
-
-        renderRules();
-        updateEnabledUI();
-
-        $('#canon-keeper-close').on('click', function () {
             $('#canon-keeper-modal').hide();
-        });
+        }
+    );
 
-        $('#canon-keeper-enabled').on('change', function () {
+    /* ---------- Добавить правило ---------- */
 
-            setEnabled($(this).is(':checked'));
+    $(document).off('click.canonKeeperAdd', '#canon-keeper-add');
 
-            updateEnabledUI();
+    $(document).on(
+        'click.canonKeeperAdd',
+        '#canon-keeper-add',
+        function (event) {
 
-            console.log(
-                '[Canon Keeper] Enabled:',
-                isEnabled()
-            );
-        });
-
-        $('#canon-keeper-add').on('click', function () {
+            event.preventDefault();
+            event.stopPropagation();
 
             const input = $('#canon-keeper-input');
-
             const text = input.val().trim();
 
             if (!text) {
@@ -415,159 +397,118 @@ jQuery(function () {
             input.val('');
 
             renderRules();
+        }
+    );
 
-            console.log(
-                '[Canon Keeper] Rule added'
-            );
-        });
+    /* ---------- Удалить ---------- */
 
-        $('#canon-keeper-copy').on('click', async function () {
+    $(document).off('click.canonKeeperDelete', '.canon-delete');
 
-            const canon = getCanonText();
+    $(document).on(
+        'click.canonKeeperDelete',
+        '.canon-delete',
+        function (event) {
 
-            if (!canon) {
-                alert('Канон пока пуст.');
+            event.preventDefault();
+            event.stopPropagation();
+
+            const index = Number($(this).data('index'));
+
+            const rules = loadRules();
+
+            rules.splice(index, 1);
+
+            saveRules(rules);
+
+            renderRules();
+        }
+    );
+
+    /* ---------- Изменить ---------- */
+
+    $(document).off('click.canonKeeperEdit', '.canon-edit');
+
+    $(document).on(
+        'click.canonKeeperEdit',
+        '.canon-edit',
+        function (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const index = Number($(this).data('index'));
+
+            const rules = loadRules();
+
+            if (rules[index] === undefined) {
                 return;
             }
 
+            $('#canon-keeper-input').val(rules[index]);
+
+            rules.splice(index, 1);
+
+            saveRules(rules);
+
+            renderRules();
+
+            $('#canon-keeper-input').focus();
+        }
+    );
+
+    /* ---------- Копировать весь канон ---------- */
+
+    $(document).off('click.canonKeeperCopy', '#canon-keeper-copy');
+
+    $(document).on(
+        'click.canonKeeperCopy',
+        '#canon-keeper-copy',
+        async function (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const rules = loadRules();
+
+            if (!rules.length) {
+                return;
+            }
+
+            const canonText = rules
+                .map(function (rule, index) {
+                    return (index + 1) + '. ' + rule;
+                })
+                .join('\n\n');
+
             try {
 
-                await navigator.clipboard.writeText(canon);
+                await navigator.clipboard.writeText(canonText);
 
                 alert('Канон скопирован!');
 
-            } catch (e) {
+            } catch (error) {
 
-                console.error(
-                    '[Canon Keeper] Copy error:',
-                    e
-                );
+                /*
+                 * Запасной вариант для браузеров,
+                 * где navigator.clipboard недоступен.
+                 */
+                const temp = $('<textarea>');
 
-                alert(
-                    'Не удалось скопировать канон.'
-                );
+                temp.val(canonText);
+
+                $('body').append(temp);
+
+                temp[0].select();
+
+                document.execCommand('copy');
+
+                temp.remove();
+
+                alert('Канон скопирован!');
             }
-        });
-
-        $(document)
-            .off(
-                'click.canonKeeperDelete',
-                '.canon-delete-rule'
-            )
-            .on(
-                'click.canonKeeperDelete',
-                '.canon-delete-rule',
-                function () {
-
-                    const index = Number(
-                        $(this).data('index')
-                    );
-
-                    const rules = loadRules();
-
-                    if (
-                        index >= 0 &&
-                        index < rules.length
-                    ) {
-
-                        rules.splice(index, 1);
-
-                        saveRules(rules);
-
-                        renderRules();
-
-                    }
-                }
-            );
-
-        $(document)
-            .off(
-                'click.canonKeeperEdit',
-                '.canon-edit-rule'
-            )
-            .on(
-                'click.canonKeeperEdit',
-                '.canon-edit-rule',
-                function () {
-
-                    const index = Number(
-                        $(this).data('index')
-                    );
-
-                    const rules = loadRules();
-
-                    if (
-                        index < 0 ||
-                        index >= rules.length
-                    ) {
-                        return;
-                    }
-
-                    const newText = prompt(
-                        'Изменить правило канона:',
-                        rules[index]
-                    );
-
-                    if (newText === null) {
-                        return;
-                    }
-
-                    const cleanText =
-                        newText.trim();
-
-                    if (!cleanText) {
-                        return;
-                    }
-
-                    rules[index] = cleanText;
-
-                    saveRules(rules);
-
-                    renderRules();
-                }
-            );
-    }
-
-    /*
-     * Canon Keeper button
-     */
-
-    const buttonHtml = `
-        <div id="canon-keeper-button"
-             class="list-group-item flex-container flexGap5">
-
-            <div class="fa-solid fa-book extensionsMenuExtensionButton"></div>
-
-            Canon Keeper
-
-        </div>
-    `;
-
-    if (!$('#canon-keeper-button').length) {
-        $('#extensionsMenu').prepend(buttonHtml);
-    }
-
-    /*
-     * Open Canon Keeper
-     */
-
-    $(document)
-        .off(
-            'click.canonKeeperOpen',
-            '#canon-keeper-button'
-        )
-        .on(
-            'click.canonKeeperOpen',
-            '#canon-keeper-button',
-            function () {
-
-                openCanonKeeper();
-
-            }
-        );
-
-    console.log(
-        '[Canon Keeper] loaded'
+        }
     );
+
+    console.log('[Canon Keeper] loaded successfully');
 
 });
