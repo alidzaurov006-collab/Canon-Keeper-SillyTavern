@@ -1,11 +1,29 @@
 (function () {
     'use strict';
 
-    console.log('[Canon Keeper] запущен');
+    const extensionName = 'canon-keeper';
 
-    const test = document.createElement('div');
-    test.id = 'canon-keeper-test';
-    test.textContent = 'Canon Keeper ✓';
+    function init() {
+        if (document.getElementById('canon-keeper-button')) {
+            return;
+        }
 
-    document.body.appendChild(test);
+        const button = document.createElement('div');
+        button.id = 'canon-keeper-button';
+        button.textContent = '📖 Canon Keeper';
+
+        button.addEventListener('click', () => {
+            alert('Canon Keeper запущен!');
+        });
+
+        document.body.appendChild(button);
+
+        console.log('[Canon Keeper] Extension loaded');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
