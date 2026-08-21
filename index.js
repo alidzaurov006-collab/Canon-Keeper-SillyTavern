@@ -11,8 +11,24 @@ jQuery(function () {
     $('#extensionsMenu').prepend(buttonHtml);
 
     $('#canon-keeper-button').on('click', function () {
-        alert('Canon Keeper работает!');
+
+        const content = `
+            <div style="padding: 20px; text-align: center;">
+                <h2>🛡️ Canon Keeper</h2>
+                <p>Хранитель канона</p>
+                <hr>
+                <p>Окно Canon Keeper успешно открыто.</p>
+            </div>
+        `;
+
+        const popup = new Popup(
+            content,
+            POPUP_TYPE.DISPLAY
+        );
+
+        popup.show();
     });
 
     console.log('[Canon Keeper] button added');
+
 });
