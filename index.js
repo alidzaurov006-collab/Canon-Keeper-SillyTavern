@@ -10,23 +10,23 @@ jQuery(function () {
 
     $('#extensionsMenu').prepend(buttonHtml);
 
-    $('#canon-keeper-button').on('click', function () {
+    $('#canon-keeper-button').on('click', async function () {
 
-        const content = `
-            <div style="padding: 20px; text-align: center;">
+        const { Popup, POPUP_TYPE } = SillyTavern.getContext();
+
+        const popup = new Popup(
+            `
+            <div style="padding: 10px;">
                 <h2>🛡️ Canon Keeper</h2>
                 <p>Хранитель канона</p>
                 <hr>
-                <p>Окно Canon Keeper успешно открыто.</p>
+                <p>Первое настоящее окно Canon Keeper.</p>
             </div>
-        `;
-
-        const popup = new Popup(
-            content,
+            `,
             POPUP_TYPE.DISPLAY
         );
 
-        popup.show();
+        await popup.show();
     });
 
     console.log('[Canon Keeper] button added');
