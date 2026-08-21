@@ -12,17 +12,19 @@ jQuery(function () {
         </div>
     `;
 
-    // Не создаём кнопку повторно
     if ($('#canon-keeper-button').length === 0) {
         $('#extensionsMenu').prepend(buttonHtml);
     }
 
 
     // =========================
-    // Открытие окна Canon Keeper
+    // Открытие Canon Keeper
     // =========================
 
-    $(document).off('click.canonKeeperOpen', '#canon-keeper-button');
+    $(document).off(
+        'click.canonKeeperOpen',
+        '#canon-keeper-button'
+    );
 
     $(document).on(
         'click.canonKeeperOpen',
@@ -63,9 +65,11 @@ jQuery(function () {
                         🛡️ Canon Keeper
                     </h1>
 
-                    <div style="text-align:center;
-                                font-size:22px;
-                                margin-bottom:30px;">
+                    <div style="
+                        text-align:center;
+                        font-size:22px;
+                        margin-bottom:30px;
+                    ">
                         Хранитель канона
                     </div>
 
@@ -114,6 +118,34 @@ jQuery(function () {
 
             $('#canon-keeper-modal').remove();
             $('body').append(modalHtml);
+
+
+            // =========================
+            // Загрузка сохранённых правил
+            // =========================
+
+            const savedRules = JSON.parse(
+                localStorage.getItem('canonKeeperRules') || '[]'
+            );
+
+            savedRules.forEach(function (rule) {
+
+                $('#canon-rules').append(`
+                    <div class="canon-rule"
+                         style="
+                            background:#222;
+                            border:1px solid #444;
+                            border-radius:10px;
+                            padding:15px;
+                            margin-top:10px;
+                            font-size:18px;
+                         ">
+                        ${$('<div>').text(rule).html()}
+                    </div>
+                `);
+
+            });
+
         }
     );
 
@@ -122,26 +154,30 @@ jQuery(function () {
     // Закрытие окна
     // =========================
 
-    $(document).off('click.canonKeeperClose', '#canon-keeper-close');
+    $(document).off(
+        'click.canonKeeperClose',
+        '#canon-keeper-close'
+    );
 
     $(document).on(
         'click.canonKeeperClose',
         '#canon-keeper-close',
         function () {
+
             $('#canon-keeper-modal').remove();
+
         }
     );
 
 
     // =========================
-    // ДОБАВЛЕНИЕ ПРАВИЛА
+    // Добавление правила
     // =========================
-    // ВАЖНО:
-    // используется делегированный обработчик,
-    // поэтому кнопка будет работать даже после
-    // динамического создания окна.
 
-    $(document).off('click.canonKeeperAdd', '#canon-add-rule');
+    $(document).off(
+        'click.canonKeeperAdd',
+        '#canon-add-rule'
+    );
 
     $(document).on(
         'click.canonKeeperAdd',
@@ -151,13 +187,38 @@ jQuery(function () {
             event.preventDefault();
             event.stopPropagation();
 
+
             const input = $('#canon-rule-input');
             const rule = input.val().trim();
 
+
             if (!rule) {
+
                 alert('Сначала напиши правило.');
+
                 return;
             }
+
+
+            // =========================
+            // Сохраняем правило
+            // =========================
+
+            const savedRules = JSON.parse(
+                localStorage.getItem('canonKeeperRules') || '[]'
+            );
+
+            savedRules.push(rule);
+
+            localStorage.setItem(
+                'canonKeeperRules',
+                JSON.stringify(savedRules)
+            );
+
+
+            // =========================
+            // Показываем правило
+            // =========================
 
             $('#canon-rules').append(`
                 <div class="canon-rule"
@@ -173,9 +234,17 @@ jQuery(function () {
                 </div>
             `);
 
+
+            // Очищаем поле
+
             input.val('');
 
-            console.log('[Canon Keeper] rule added:', rule);
+
+            console.log(
+                '[Canon Keeper] rule saved:',
+                rule
+            );
+
         }
     );
 
