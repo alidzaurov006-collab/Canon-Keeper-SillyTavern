@@ -1,31 +1,18 @@
-(function () {
-    'use strict';
+jQuery(function () {
 
-    function init() {
-        console.log('[Canon Keeper] INIT STARTED');
+    const buttonHtml = `
+        <div id="canon-keeper-button"
+             class="list-group-item flex-container flexGap5">
+            <div class="fa-solid fa-book extensionsMenuExtensionButton"></div>
+            Canon Keeper
+        </div>
+    `;
 
-        if (document.getElementById('canon-keeper-button')) {
-            return;
-        }
+    $('#extensionsMenu').prepend(buttonHtml);
 
-        const button = document.createElement('div');
+    $('#canon-keeper-button').on('click', function () {
+        alert('Canon Keeper работает!');
+    });
 
-        button.id = 'canon-keeper-button';
-        button.textContent = '📖 Canon Keeper';
-
-        button.addEventListener('click', function () {
-            alert('Canon Keeper работает!');
-        });
-
-        document.body.appendChild(button);
-
-        console.log('[Canon Keeper] BUTTON CREATED');
-    }
-
-    // Запускаем стороннее расширение самостоятельно
-    if (window.jQuery) {
-        jQuery(init);
-    } else {
-        window.addEventListener('DOMContentLoaded', init);
-    }
-})();
+    console.log('[Canon Keeper] button added');
+});
