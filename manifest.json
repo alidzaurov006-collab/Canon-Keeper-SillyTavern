@@ -6,9 +6,6 @@
     "js": "index.js",
     "css": "style.css",
     "author": "Canon Keeper",
-    "version": "1.0.1",
-    "homePage": "https://github.com/alidzaurov006-collab/Canon-Keeper-SillyTavern",
-    "hooks": {
-        "activate": "init"
-    }
+    "version": "1.0.2",
+    "homePage": "https://github.com/alidzaurov006-collab/Canon-Keeper-SillyTavern"
 }
